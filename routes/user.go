@@ -3,22 +3,40 @@ package routes
 import (
 	"log"
 
+	"github.com/devjunaeid/cms-admin-backend/models"
 	"github.com/devjunaeid/cms-admin-backend/types"
 	"github.com/devjunaeid/cms-admin-backend/utils"
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
 )
 
 var validator = utils.InitValidator()
 
-func CeateRoute(route fiber.Router) {
-	// Register User.
-	route.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("From User Routing Group")
-	})
-	route.Post("/register", registerUser)
+type UserRoute struct {
+	route fiber.Router
+	db    *gorm.DB
 }
 
-var registerUser = func(c fiber.Ctx) error {
+// Init User Route.
+func InitUser(r fiber.Router, db *gorm.DB) *UserRoute {
+	return &UserRoute{
+		route: r,
+		db:    db,
+	}
+}
+
+func (ur *UserRoute) CreateRoute() {
+	// User Table Migration.
+	ur.db.AutoMigrate(&models.User{})
+
+	// Register User.
+	ur.route.Get("/", func(c fiber.Ctx) error {
+		return c.SendString("From User Routing Group")
+	})
+	ur.route.Post("/register", ur.registerUser)
+}
+
+func (ur *UserRoute) registerUser(c fiber.Ctx) error {
 	// Check if the body is empty
 	if c.Request().Body() == nil {
 		res := utils.CreateErrorRes("Bad Request", fiber.ErrBadRequest.Code)
