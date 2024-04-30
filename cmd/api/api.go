@@ -24,8 +24,17 @@ func CreateAPI(db *gorm.DB) {
 		}
 		return c.JSON(data)
 	})
-	// User Route Group.
-	userHandler := app.Group("/user")
+	// Route Group.
+	userHandler := app.Group("/v1")
+	userHandler.Get("/", func(c fiber.Ctx) error {
+		return c.SendString("API Version 1.0!!!")
+	})
+
+	// Auth Routes.
+	authRoute := routes.InitAuth(userHandler, db)
+	authRoute.CreateRoute()
+
+	// User Route
 	userRoute := routes.InitUser(userHandler, db)
 	userRoute.CreateRoute()
 
