@@ -14,11 +14,15 @@ type UserResponse struct {
 type RegisterPayload struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
-	Name     string `json:"name" validate:"required,alphaunicode,min=2,max=30"`
+	Name     string `json:"name" validate:"required,min=2,max=30"`
 	Img      string `json:"img"`
 }
 
 type LoginPayload struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password"`
+}
+
+type UpdateUserRolePayload struct {
+	Role string `json:"role" validate:"required,oneof= user admin manager"`
 }
