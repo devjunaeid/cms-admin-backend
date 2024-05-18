@@ -24,6 +24,7 @@ func InitAuth(r fiber.Router, database *gorm.DB) *AuthRoute {
 
 func (ar *AuthRoute) CreateRoute() {
 	ar.router.Post("/register", ar.registerUser)
+	ar.router.Post("/login", ar.loginUser)
 }
 
 func (ar *AuthRoute) registerUser(c fiber.Ctx) error {
@@ -67,4 +68,35 @@ func (ar *AuthRoute) registerUser(c fiber.Ctx) error {
 	// Register Successful Response.
 	res := utils.CreateSuccessRes("Register Successfull", fiber.StatusCreated)
 	return c.JSON(res)
+}
+
+func (ar *AuthRoute) loginUser(c fiber.Ctx) error {
+	if c.Request().Body() == nil {
+		res := utils.CreateErrorRes("Failed To log-in", fiber.ErrBadRequest.Code)
+		c.JSON(res)
+	}
+
+	payload := new(types.LoginPayload)
+	c.Bind().Body(payload)
+
+	err := validator.Struct(payload)
+	if err != nil {
+		res := utils.CreateErrorRes("Failed to login", fiber.ErrBadRequest.Code)
+		return c.JSON(res)
+	}
+
+	var user types.DbLoginReqResponse
+	dbQ := ar.db.Model(&models.Users{}).First(&user).Where("email=?", payload.Email)
+	if dbQ.RowsAffected < 1 {
+		res := utils.CreateErrorRes("Failed to login", fiber.ErrBadRequest.Code)
+		return c.JSON(res)
+	} else {
+		isPasswordCorrect := utils.CheckPasswordHash(payload.Password, user.Password)
+		if !isPasswordCorrect {
+			res := utils.CreateErrorRes("Failed to login", fiber.ErrBadRequest.Code)
+			return c.JSON(res)
+		} else {
+			return c.JSON(user)
+		}
+	}
 }
