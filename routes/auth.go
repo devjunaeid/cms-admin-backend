@@ -45,17 +45,19 @@ func (ar *AuthRoute) registerUser(c fiber.Ctx) error {
 
 	// Check If the user already registerd.
 	var user models.Users
-	req := ar.db.First(&user, "email=?", payload.Email)
-	if req.Error == nil {
+	dbQ := ar.db.First(&user, "email=?", payload.Email)
+	if dbQ.RowsAffected >= 1 {
 		res := utils.CreateErrorRes("Failed to register user, already Registered!!", fiber.ErrBadRequest.Code)
 		return c.JSON(res)
 	}
+	// Hasing Password.
+	hasedPass, _ := utils.HashPassword(payload.Password)
 
 	// Insert new register request to the database.
 	dbPayload := models.Users{
 		Name:     payload.Name,
 		Email:    payload.Email,
-		Password: payload.Password,
+		Password: hasedPass,
 	}
 	dbRes := ar.db.Create(&dbPayload)
 
