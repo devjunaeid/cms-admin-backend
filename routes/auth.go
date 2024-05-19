@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/devjunaeid/cms-admin-backend/models"
@@ -98,7 +99,15 @@ func (ar *AuthRoute) loginUser(c fiber.Ctx) error {
 			res := utils.CreateErrorRes("Failed to login", fiber.ErrBadRequest.Code)
 			return c.JSON(res)
 		} else {
-			return c.JSON(user)
+			token, err := utils.CreateJwt(user)
+			if err != nil || token == "" {
+				res := utils.CreateErrorRes("Failed to login", fiber.StatusInternalServerError)
+				fmt.Println(err.Error())
+				return c.JSON(res)
+			}
+
+			res := utils.JwtTokenRes(token, fiber.StatusAccepted)
+			return c.JSON(res)
 		}
 	}
 }
