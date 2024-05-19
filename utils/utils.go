@@ -21,6 +21,13 @@ func CreateSuccessRes(msg string, status int) types.SuccessDefault {
 	}
 }
 
+func JwtTokenRes(token string, status int) types.JwtTokenRes {
+	return types.JwtTokenRes{
+		Token:  token,
+		Status: status,
+	}
+}
+
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
